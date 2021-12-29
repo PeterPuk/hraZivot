@@ -13,7 +13,7 @@
 #include <unistd.h>
 #include<ctype.h>
 #include <pthread.h>
-
+#include <stdbool.h>
 //kniznice potrebne na chod metody kbhit()
 #include <termios.h>
 #include <sys/time.h>
@@ -29,6 +29,8 @@ int spocitajSusedov(int pocetRiadkov, int pocetStlpcov, int x, int y, int *pole)
 int *urobKrok(int pocetRiadkov, int pocetStlpcov, int *pole);
 
 int *vytvorSvetManualne(int pocetRiadkov, int pocetStlpcov);
+
+
 
 int main(int argc, char *argv[]) {
     srand(time(NULL));
@@ -48,16 +50,16 @@ int main(int argc, char *argv[]) {
 
     pocetRiadkov += 2;
     pocetStlpcov += 2;
-    zacni(pocetRiadkov, pocetStlpcov,volbaGenerovania);
+    zacni(pocetRiadkov, pocetStlpcov, volbaGenerovania);
 
 }
 
 void zacni(int pocetRiadkov, int pocetStlpcov, int volbaGenerovania) {
     int *svet = calloc(pocetRiadkov * pocetStlpcov, sizeof(int));
-    if(volbaGenerovania==1){
+    if (volbaGenerovania == 1) {
         printf("Bunky sa vam nahodne vygeneruju\n");
         svet = vytvorSvetNahodne(pocetRiadkov, pocetStlpcov);
-    }else{
+    } else {
         printf("Zvolte si bunky ktore budu zit na zaciatku\n");
         svet = vytvorSvetManualne(pocetRiadkov, pocetStlpcov);
     }
@@ -98,10 +100,10 @@ int *vytvorSvetNahodne(int pocetRiadkov, int pocetStlpcov) {
     for (int y = 1; y < pocetRiadkov - 1; ++y) {
         for (int x = 1; x < pocetStlpcov - 1; ++x) {
             int volbaZnaku = rand() % 2;
-            if(volbaZnaku==1){
+            if (volbaZnaku == 1) {
                 *(pole + y * pocetStlpcov + x) = 1;
-            }else{
-                *(pole + y * pocetStlpcov + x) =0;
+            } else {
+                *(pole + y * pocetStlpcov + x) = 0;
             }
 
         }
@@ -111,8 +113,47 @@ int *vytvorSvetNahodne(int pocetRiadkov, int pocetStlpcov) {
 
 }
 
-int *vytvorSvetManualne(int pocetRiadkov, int pocetStlpcov){
+int *vytvorSvetManualne(int pocetRiadkov, int pocetStlpcov) {
+    int *pole = calloc(pocetRiadkov * pocetStlpcov, sizeof(int));
+    if (pole == NULL) {
+        return NULL;
+    }
 
+    int x, y;
+    int volbaKoniec;
+    bool koniecZadavania;
+    int pocetR, pocetS;
+    while (koniecZadavania == false) {
+
+
+        printf("Zvolte si x-ovu suradnicu bodu(minimalna hodnota moze byt 1 a maximalna: %d\n", pocetRiadkov-2);
+        scanf("%d", &x);
+        if ((x >= 0) && (x < pocetRiadkov)) {
+            printf("Zvolte si y-ovu suradnicu bodu(minimalna hodnota moze byt 1 a maximalna: %d\n", pocetStlpcov-2);
+            scanf("%d", &y);
+            if ((y >= 0) && (y < pocetStlpcov)) {
+
+                for (int i = 1; i < pocetRiadkov - 1; ++i) {
+                    for (int j = 1; j < pocetStlpcov - 1; ++j) {
+                        *(pole + y * pocetStlpcov + x) = 1;
+                    }
+                }
+            }else{
+                printf("Zadali ste neplatnu suradnicu y. \n");
+            }
+        }else{
+            printf("Zadali ste neplatnu suradnicu x. \n");
+        }
+
+        printf("Zadajte 0 ak chcete skoncit so zadavanim suradnic alebo zadajte 1 ak chcete pokracovat\n");
+        scanf("%d",&volbaKoniec);
+        if(volbaKoniec==0){
+            koniecZadavania = true;
+        }else{
+            koniecZadavania = false;
+        }
+    }
+    return pole;
 
 }
 
