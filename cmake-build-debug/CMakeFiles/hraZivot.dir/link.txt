@@ -1,1 +1,1 @@
-/usr/bin/cc -g CMakeFiles/hraZivot.dir/main.c.o CMakeFiles/hraZivot.dir/server.c.o CMakeFiles/hraZivot.dir/klient.c.o -o hraZivot 
+/usr/bin/cc -g CMakeFiles/hraZivot.dir/main.c.o CMakeFiles/hraZivot.dir/server.c.o CMakeFiles/hraZivot.dir/klient.c.o -o hraZivot  -lpthread 

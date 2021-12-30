@@ -18,7 +18,7 @@
 #include <termios.h>
 #include <sys/time.h>
 
-void zacni(int pocetRiadkov, int pocetStlpcov, int volbaGenerovania);
+void zacni(int pocetRiadkov, int pocetStlpcov, int volbaGenerovania,int poradoveCislo,int volbaSubor);
 
 int *vytvorSvetNahodne(int pocetRiadkov, int pocetStlpcov);
 
@@ -30,13 +30,23 @@ int *urobKrok(int pocetRiadkov, int pocetStlpcov, int *pole);
 
 int *vytvorSvetManualne(int pocetRiadkov, int pocetStlpcov);
 
+void zapisHruDoSuboru(int pocetRiadkov, int pocetStlpcov, int *pole, int poradoveCislo);
 
+int *nacitajHruZoSuboru(int pocetRiadkov, int pocetStlpcov);
 
 int main(int argc, char *argv[]) {
     srand(time(NULL));
+
+    int poradoveCisloHry = 1;
     int pocetRiadkov;
     int pocetStlpcov;
     int volbaGenerovania;
+    int volbaSubor;
+
+    printf("Chcete svet zo soboru?\n");
+    printf("Ak ano stlacte 1 ak nie stlacte 0\n");
+    scanf("%d", &volbaSubor);
+
     printf("Zadaj pocet riadkov svetu: ");
     scanf("%d", &pocetRiadkov);
     printf("Zadaj pocet stlpcov svetu: ");
@@ -50,13 +60,18 @@ int main(int argc, char *argv[]) {
 
     pocetRiadkov += 2;
     pocetStlpcov += 2;
-    zacni(pocetRiadkov, pocetStlpcov, volbaGenerovania);
-
+    zacni(pocetRiadkov, pocetStlpcov, volbaGenerovania,poradoveCisloHry,volbaSubor);
+    /*zapisHruDoSuboru(pocetRiadkov,pocetStlpcov,);*/
+    poradoveCisloHry++;
 }
 
-void zacni(int pocetRiadkov, int pocetStlpcov, int volbaGenerovania) {
+void zacni(int pocetRiadkov, int pocetStlpcov, int volbaGenerovania,int poradoveCislo, int volbaSubor) {
     int *svet = calloc(pocetRiadkov * pocetStlpcov, sizeof(int));
-    if (volbaGenerovania == 1) {
+    if(volbaSubor==1){
+        svet = nacitajHruZoSuboru(pocetRiadkov,pocetStlpcov);
+
+    }
+    if (volbaGenerovania == 1 && volbaSubor==0) {
         printf("Bunky sa vam nahodne vygeneruju\n");
         svet = vytvorSvetNahodne(pocetRiadkov, pocetStlpcov);
     } else {
@@ -66,7 +81,9 @@ void zacni(int pocetRiadkov, int pocetStlpcov, int volbaGenerovania) {
     if (svet == NULL) {
         return;
     }
+
     zobrazSvet(pocetRiadkov, pocetStlpcov, svet);
+    zapisHruDoSuboru(pocetRiadkov,pocetStlpcov,svet,poradoveCislo);
     for (int i = 0; i < 10; ++i) {
         int *novaSimulacia = urobKrok(pocetRiadkov, pocetStlpcov, svet);
         if (novaSimulacia == NULL)return;
@@ -87,6 +104,51 @@ void zobrazSvet(int pocetRiadkov, int pocetStlpcov, int *pole) {
     }
     printf("------------------------\n");
 }
+
+void zapisHruDoSuboru(int pocetRiadkov, int pocetStlpcov, int *pole,int poradoveCislo){
+    FILE *subor = fopen("vystup.txt","w");
+    if(subor == NULL){
+        printf("Subor sa nenasiel\n");
+        exit(1);
+    }
+    printf("Zapisuje sa do suboru\n");
+    for (int y = 0; y < pocetRiadkov; ++y) {
+        for (int x = 0; x < pocetStlpcov; ++x) {
+            int cislo = *(pole + y * pocetStlpcov + x);
+            fprintf(subor, "%d\n", cislo);
+
+        }
+        fprintf(subor, "\n");
+    }
+    fclose(subor);
+}
+
+int *nacitajHruZoSuboru(int pocetRiadkov, int pocetStlpcov){
+    int *pole = calloc(pocetRiadkov * pocetStlpcov, sizeof(int));
+    FILE *vstup = fopen("vstup.txt","r");
+    if(vstup == NULL){
+        printf("Subor sa nenasiel\n");
+        exit(1);
+    }
+    int cislo;
+    for (int y = 0; y < pocetRiadkov; ++y) {
+        for (int x = 0; x < pocetStlpcov; ++x) {
+
+
+
+            fscanf(vstup, "%d",&cislo);
+            *(pole + y * pocetStlpcov + x) = cislo;
+
+        }
+
+    }
+
+
+
+
+    return pole;
+}
+
 
 int *vytvorSvetNahodne(int pocetRiadkov, int pocetStlpcov) {
     printf("Zaciatok \n");
