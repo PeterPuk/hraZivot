@@ -33,6 +33,8 @@ int *vytvorSvetManualne(int pocetRiadkov, int pocetStlpcov);
 void zapisHruDoSuboru(int pocetRiadkov, int pocetStlpcov, int *pole, int poradoveCislo);
 
 int *nacitajHruZoSuboru(int pocetRiadkov, int pocetStlpcov);
+int getPocetRiadkovSvetuVsubore();
+int getPocetStlpcovSvetuVSubore();
 
 int main(int argc, char *argv[]) {
     srand(time(NULL));
@@ -42,8 +44,9 @@ int main(int argc, char *argv[]) {
     int pocetStlpcov;
     int volbaGenerovania;
     int volbaSubor;
-
-    printf("Chcete svet zo soboru?\n");
+    int *pole = nacitajHruZoSuboru(3,3);
+    zobrazSvet(3,3,pole);
+    /*printf("Chcete svet zo suboru?\n");
     printf("Ak ano stlacte 1 ak nie stlacte 0\n");
     scanf("%d", &volbaSubor);
 
@@ -61,14 +64,15 @@ int main(int argc, char *argv[]) {
     pocetRiadkov += 2;
     pocetStlpcov += 2;
     zacni(pocetRiadkov, pocetStlpcov, volbaGenerovania,poradoveCisloHry,volbaSubor);
-    /*zapisHruDoSuboru(pocetRiadkov,pocetStlpcov,);*/
+    zapisHruDoSuboru(pocetRiadkov,pocetStlpcov,);*/
     poradoveCisloHry++;
 }
 
 void zacni(int pocetRiadkov, int pocetStlpcov, int volbaGenerovania,int poradoveCislo, int volbaSubor) {
-    int *svet = calloc(pocetRiadkov * pocetStlpcov, sizeof(int));
+    int *svet;
     if(volbaSubor==1){
         svet = nacitajHruZoSuboru(pocetRiadkov,pocetStlpcov);
+    }else{
 
     }
     if (volbaGenerovania == 1 && volbaSubor==0) {
@@ -105,6 +109,33 @@ void zobrazSvet(int pocetRiadkov, int pocetStlpcov, int *pole) {
     printf("------------------------\n");
 }
 
+int getPocetRiadkovSvetuVsubore(){
+    FILE *vstup = fopen("C:\\Users\\peter\\CLionProjects\\hraZivot\\vstup.txt","r");
+
+    if(vstup == NULL){
+        printf("Subor sa nenasiel\n");
+        exit(1);
+    }
+    char *riadok = NULL;
+    char *cislo = NULL;
+
+    int y = 0;
+    int pocetStlpcov = 0;
+    while(!feof((vstup))){
+        pocetStlpcov = 0;
+        fscanf(vstup,"%s",riadok);
+        cislo = strtok(riadok,",");
+        while (cislo !=NULL){
+            pocetStlpcov++;
+            cislo = strtok(NULL,",");
+        }
+        printf("\n");
+        y++;
+    }
+    printf("Pocet riadkov vo svete je: %d\n",pocetStlpcov);
+    return pocetStlpcov;
+}
+
 void zapisHruDoSuboru(int pocetRiadkov, int pocetStlpcov, int *pole,int poradoveCislo){
     FILE *subor = fopen("vystup.txt","w");
     if(subor == NULL){
@@ -115,7 +146,7 @@ void zapisHruDoSuboru(int pocetRiadkov, int pocetStlpcov, int *pole,int poradove
     for (int y = 0; y < pocetRiadkov; ++y) {
         for (int x = 0; x < pocetStlpcov; ++x) {
             int cislo = *(pole + y * pocetStlpcov + x);
-            fprintf(subor, "%d\n", cislo);
+            fprintf(subor, "%d", cislo);
 
         }
         fprintf(subor, "\n");
@@ -125,29 +156,36 @@ void zapisHruDoSuboru(int pocetRiadkov, int pocetStlpcov, int *pole,int poradove
 
 int *nacitajHruZoSuboru(int pocetRiadkov, int pocetStlpcov){
     int *pole = calloc(pocetRiadkov * pocetStlpcov, sizeof(int));
-    FILE *vstup = fopen("vstup.txt","r");
+
+    FILE *vstup = fopen("C:\\Users\\peter\\CLionProjects\\hraZivot\\vstup.txt","r");
+
+    char *riadok,*cislo;
     if(vstup == NULL){
         printf("Subor sa nenasiel\n");
         exit(1);
     }
-    int cislo;
-    for (int y = 0; y < pocetRiadkov; ++y) {
-        for (int x = 0; x < pocetStlpcov; ++x) {
-
-
-
-            fscanf(vstup, "%d",&cislo);
-            *(pole + y * pocetStlpcov + x) = cislo;
-
+    printf("ide to dalej po ife\n");
+    int y = 0;
+    int x;
+    while(feof((vstup))){
+        x = 0;
+        fscanf(vstup,"%c",riadok);
+        cislo = strtok(riadok," ");
+        while (cislo !=NULL){
+            *(pole + y * pocetStlpcov + x) = strtol(riadok,&cislo,10);
+            x++;
+            cislo = strtok(NULL," ");
         }
-
+        printf("\n");
+        y++;
     }
 
-
-
-
     return pole;
+
+
 }
+
+
 
 
 int *vytvorSvetNahodne(int pocetRiadkov, int pocetStlpcov) {

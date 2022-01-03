@@ -6,7 +6,35 @@
 
 #IncludeRegexTransform: 
 
-/tmp/tmp.6sbvxNJVPH/main.c
+/tmp/tmp.R60RAYMiqi/klient.c
+klient.h
+/tmp/tmp.R60RAYMiqi/klient.h
+sys/types.h
+-
+sys/socket.h
+-
+netinet/in.h
+-
+netdb.h
+-
 stdio.h
 -
+stdlib.h
+-
+string.h
+-
+unistd.h
+-
+ctype.h
+-
+pthread.h
+-
+stdbool.h
+-
+termios.h
+-
+sys/time.h
+-
+
+/tmp/tmp.R60RAYMiqi/klient.h
 
