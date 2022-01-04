@@ -35,6 +35,14 @@ termios.h
 -
 sys/time.h
 -
+stdio.h
+-
+termios.h
+-
+unistd.h
+-
+fcntl.h
+-
 
 /tmp/tmp.R60RAYMiqi/klient.h
 
