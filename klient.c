@@ -23,39 +23,30 @@
 #include <fcntl.h>
 
 
-
-typedef struct dataV{
-    pthread_mutex_t* mutex;
+typedef struct dataV {
+    pthread_mutex_t *mutex;
     int koniec;
     int pocetRiadkov;
     int pocetStlpcov;
     int poradoveCislo;
     int volbaSubor;
+    int krok;
     int *svet;
 
-}DATA;
+} DATA;
 
-void zacni(int pocetRiadkov, int pocetStlpcov, int volbaGenerovania,int poradoveCislo,int volbaSubor);
 
 int *vytvorSvetNahodne(int pocetRiadkov, int pocetStlpcov);
-
 void zobrazSvet(int pocetRiadkov, int PocetStlpcov, int *pole);
-
 int spocitajSusedov(int pocetRiadkov, int pocetStlpcov, int x, int y, int *pole);
-
 int *urobKrok(int pocetRiadkov, int pocetStlpcov, int *pole);
-
 int *vytvorSvetManualne(int pocetRiadkov, int pocetStlpcov);
-
 void zapisHruDoSuboru(int pocetRiadkov, int pocetStlpcov, int *pole, int poradoveCislo);
-
 int *nacitajHruZoSuboru(int pocetRiadkov, int pocetStlpcov);
-void zistiStlacenuKlavesu();
+static void *ovladanie(void *data);
 
-static void* ovladanie(void* args);
-static void* simuluj(void* args);
-int getPocetRiadkovSvetuVsubore();
-int getPocetStlpcovSvetuVSubore();
+static void *simuluj(void *data);
+
 
 int main(int argc, char *argv[]) {
     srand(time(NULL));
@@ -87,14 +78,27 @@ int main(int argc, char *argv[]) {
     scanf("%d", &volbaGenerovania);
     pocetRiadkov += 2;
     pocetStlpcov += 2;
-    if (volbaGenerovania ==0) {
-        printf("volba generovania je:%d \n",volbaGenerovania);
-        svet = vytvorSvetManualne(pocetRiadkov,pocetStlpcov);
-        zobrazSvet(pocetRiadkov,pocetStlpcov,svet);
-    }else{
-        printf("volba generovania je:%d \n",volbaGenerovania);
-        svet = vytvorSvetNahodne(pocetRiadkov,pocetStlpcov);
-        zobrazSvet(pocetRiadkov,pocetStlpcov,svet);
+    if (volbaGenerovania == 0) {
+        printf("volba generovania je:%d \n", volbaGenerovania);
+        svet = vytvorSvetManualne(pocetRiadkov, pocetStlpcov);
+        zobrazSvet(pocetRiadkov, pocetStlpcov, svet);
+    } else {
+        printf("volba generovania je:%d \n", volbaGenerovania);
+        svet = vytvorSvetNahodne(pocetRiadkov, pocetStlpcov);
+        zobrazSvet(pocetRiadkov, pocetStlpcov, svet);
+    }
+    int volbaKroky;
+    printf("Zvolte si ci chcete zacat od nejakeho kroku");
+    printf("Ak zadate 0- bude sa simulovat od zaciatku\n");
+    printf("Ak zadate 1- bude sa simulovat od kroku\n");
+    scanf("%d", &volbaKroky);
+    int krok = 0;
+    if (volbaKroky == 1) {
+        printf("Zadajte krok od ktoreho chcete zacat simulovat\n");
+        scanf("%d", &krok);
+
+    } else {
+        krok = 0;
     }
 
     /*printf("Chcete zacat simulaciu od nejakeho kroku?\n");
@@ -103,7 +107,7 @@ int main(int argc, char *argv[]) {
     //zapisHruDoSuboru(pocetRiadkov,pocetStlpcov,);
     pthread_mutex_t mutex;
     pthread_mutex_init(&mutex, NULL);
-    DATA dataV = {&mutex,0,pocetRiadkov,pocetStlpcov,poradoveCisloHry,0,svet};
+    DATA dataV = {&mutex, 0, pocetRiadkov, pocetStlpcov, poradoveCisloHry, 0, krok, svet};
 
     pthread_t hra;
     pthread_create(&hra, NULL, simuluj, &dataV);
@@ -118,119 +122,79 @@ int main(int argc, char *argv[]) {
 
     poradoveCisloHry++;
 }
+int kbhit(void) {
+    struct timeval tv;
+    fd_set rdfs;
 
-void zacni(int pocetRiadkov, int pocetStlpcov, int volbaGenerovania,int poradoveCislo, int volbaSubor) {
-    int *svet;
-    if(volbaSubor==1){
-        svet = nacitajHruZoSuboru(pocetRiadkov,pocetStlpcov);
-    }else{
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
 
-    }
-    if (volbaGenerovania == 1 && volbaSubor==0) {
-        printf("Bunky sa vam nahodne vygeneruju\n");
-        svet = vytvorSvetNahodne(pocetRiadkov, pocetStlpcov);
-    } else {
-        printf("Zvolte si bunky ktore budu zit na zaciatku\n");
-        svet = vytvorSvetManualne(pocetRiadkov, pocetStlpcov);
-    }
-    if (svet == NULL) {
-        return;
-    }
+    FD_ZERO(&rdfs);
+    FD_SET (STDIN_FILENO, &rdfs);
 
-    zobrazSvet(pocetRiadkov, pocetStlpcov, svet);
-    zapisHruDoSuboru(pocetRiadkov,pocetStlpcov,svet,poradoveCislo);
-    for (int i = 0; i < 10; ++i) {
-        int *novaSimulacia = urobKrok(pocetRiadkov, pocetStlpcov, svet);
-        if (novaSimulacia == NULL)return;
-        svet = novaSimulacia;
-        zobrazSvet(pocetRiadkov, pocetStlpcov, svet);
-    }
-
+    select(STDIN_FILENO + 1, &rdfs, NULL, NULL, &tv);
+    return FD_ISSET(STDIN_FILENO, &rdfs);
 
 }
 
-int kbhit(void)
-{
-    struct termios oldt, newt;
-    int ch;
-    int oldf;
+void changemode(int dir) {
+    static struct termios oldt, newt;
 
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-
-    ch = getchar();
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    fcntl(STDIN_FILENO, F_SETFL, oldf);
-
-    if(ch != EOF)
-    {
-        ungetc(ch, stdin);
-        return 1;
-    }
-
-    return 0;
+    if (dir == 1) {
+        tcgetattr(STDIN_FILENO, &oldt);
+        newt = oldt;
+        newt.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    } else
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 }
 
-void zistiStlacenuKlavesu(){
 
-    printf("Press any key");
-    while (!kbhit()) {
-
-        printf(".");
-        printf("\n");
-        fflush(stdout);
-        usleep(1000000);
-    }
-    printf("\nBola stlacena klavesa.\n");
-
-}
-
-static void* ovladanie(void* data){
-    DATA* dataV = data;
+static void *ovladanie(void *data) {
+    DATA *dataV = data;
     int koniec = 0;
-    while(koniec==0) {
-        while (!kbhit()) {
-            fflush(stdout);
+    while (koniec == 0) {
+        changemode(1);
+        if (kbhit() == 1) {
             pthread_mutex_lock(dataV->mutex);
-            koniec=1;
+            koniec = 1;
             dataV->koniec = 1;
-            pthread_mutex_unlock(dataV->mutex);
+            printf("Simulacia bude po tomto kroku prerusena\n");
         }
     }
-    printf("Hra konci.\n");
+    pthread_mutex_unlock(dataV->mutex);
+    changemode(0);
+
 }
 
-static void* simuluj(void* data){
+static void *simuluj(void *data) {
     DATA *dataV = data;
     printf("Vlakno zacina simulovat\n");
     int *svet = dataV->svet;
     zobrazSvet(dataV->pocetRiadkov, dataV->pocetStlpcov, svet);
-    zapisHruDoSuboru(dataV->pocetRiadkov,dataV->pocetStlpcov,svet,dataV->poradoveCislo);
+    zapisHruDoSuboru(dataV->pocetRiadkov, dataV->pocetStlpcov, svet, dataV->poradoveCislo);
     printf("------------------------\n");
     int koniec = 0;
-    int pocitadloKrokov=1;
-    while(koniec==0){
+    int pocitadloKrokov = 0;
+    while (koniec == 0) {
         pthread_mutex_lock(dataV->mutex);
         int *novaSimulacia = urobKrok(dataV->pocetRiadkov, dataV->pocetStlpcov, svet);
         svet = novaSimulacia;
-        zobrazSvet(dataV->pocetRiadkov, dataV->pocetStlpcov, svet);
-        printf("Toto bol %d. krok simulacie\n", pocitadloKrokov);
-        printf("------------------------\n");
+        if (dataV->krok <= pocitadloKrokov) {
+            zobrazSvet(dataV->pocetRiadkov, dataV->pocetStlpcov, svet);
+            printf("Toto bol %d. krok.\n", pocitadloKrokov);
+            printf("------------------------\n");
+            //pthread_mutex_unlock(dataV->mutex);
+            usleep(2000000);
+        }
         koniec = dataV->koniec;
-
         pthread_mutex_unlock(dataV->mutex);
-        usleep(2000000);
+        usleep(200000);
         pocitadloKrokov++;
     }
     free(dataV->svet);
     return NULL;
 }
-
 
 
 void zobrazSvet(int pocetRiadkov, int pocetStlpcov, int *pole) {
@@ -242,9 +206,10 @@ void zobrazSvet(int pocetRiadkov, int pocetStlpcov, int *pole) {
     }
 }
 
-void zapisHruDoSuboru(int pocetRiadkov, int pocetStlpcov, int *pole,int poradoveCislo){
-    FILE *subor = fopen("vystup.txt","w");
-    if(subor == NULL){
+void zapisHruDoSuboru(int pocetRiadkov, int pocetStlpcov, int *pole, int poradoveCislo) {
+    FILE *subor;
+    subor = fopen("vystup.txt", "w");
+    if (subor == NULL) {
         printf("Subor sa nenasiel\n");
         exit(1);
     }
@@ -260,27 +225,27 @@ void zapisHruDoSuboru(int pocetRiadkov, int pocetStlpcov, int *pole,int poradove
     fclose(subor);
 }
 
-int *nacitajHruZoSuboru(int pocetRiadkov, int pocetStlpcov){
+int *nacitajHruZoSuboru(int pocetRiadkov, int pocetStlpcov) {
     int *pole = calloc(pocetRiadkov * pocetStlpcov, sizeof(int));
 
-    FILE *vstup = fopen("C:\\Users\\peter\\CLionProjects\\hraZivot\\vstup.txt","r");
+    FILE *vstup = fopen("C:\\Users\\peter\\CLionProjects\\hraZivot\\vstup.txt", "r");
 
-    char *riadok,*cislo;
-    if(vstup == NULL){
+    char *riadok, *cislo;
+    if (vstup == NULL) {
         printf("Subor sa nenasiel\n");
         exit(1);
     }
     printf("ide to dalej po ife\n");
     int y = 0;
     int x;
-    while(feof((vstup))){
+    while (feof((vstup))) {
         x = 0;
-        fscanf(vstup,"%c",riadok);
-        cislo = strtok(riadok," ");
-        while (cislo !=NULL){
-            *(pole + y * pocetStlpcov + x) = strtol(riadok,&cislo,10);
+        fscanf(vstup, "%c", riadok);
+        cislo = strtok(riadok, " ");
+        while (cislo != NULL) {
+            *(pole + y * pocetStlpcov + x) = strtol(riadok, &cislo, 10);
             x++;
-            cislo = strtok(NULL," ");
+            cislo = strtok(NULL, " ");
         }
         printf("\n");
         y++;
@@ -290,8 +255,6 @@ int *nacitajHruZoSuboru(int pocetRiadkov, int pocetStlpcov){
 
 
 }
-
-
 
 
 int *vytvorSvetNahodne(int pocetRiadkov, int pocetStlpcov) {
@@ -332,10 +295,10 @@ int *vytvorSvetManualne(int pocetRiadkov, int pocetStlpcov) {
     while (koniecZadavania == false) {
 
 
-        printf("Zvolte si x-ovu suradnicu bodu(minimalna hodnota moze byt 1 a maximalna: %d\n", pocetRiadkov-2);
+        printf("Zvolte si x-ovu suradnicu bodu(minimalna hodnota moze byt 1 a maximalna: %d\n", pocetRiadkov - 2);
         scanf("%d", &x);
         if ((x >= 0) && (x < pocetRiadkov)) {
-            printf("Zvolte si y-ovu suradnicu bodu(minimalna hodnota moze byt 1 a maximalna: %d\n", pocetStlpcov-2);
+            printf("Zvolte si y-ovu suradnicu bodu(minimalna hodnota moze byt 1 a maximalna: %d\n", pocetStlpcov - 2);
             scanf("%d", &y);
             if ((y >= 0) && (y < pocetStlpcov)) {
 
@@ -344,18 +307,18 @@ int *vytvorSvetManualne(int pocetRiadkov, int pocetStlpcov) {
                         *(pole + y * pocetStlpcov + x) = 1;
                     }
                 }
-            }else{
+            } else {
                 printf("Zadali ste neplatnu suradnicu y. \n");
             }
-        }else{
+        } else {
             printf("Zadali ste neplatnu suradnicu x. \n");
         }
 
         printf("Zadajte 0 ak chcete skoncit so zadavanim suradnic alebo zadajte 1 ak chcete pokracovat\n");
-        scanf("%d",&volbaKoniec);
-        if(volbaKoniec==0){
+        scanf("%d", &volbaKoniec);
+        if (volbaKoniec == 0) {
             koniecZadavania = true;
-        }else{
+        } else {
             koniecZadavania = false;
         }
     }
