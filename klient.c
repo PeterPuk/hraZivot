@@ -50,14 +50,17 @@ int *vytvorSvetManualne(int pocetRiadkov, int pocetStlpcov);
 
 void zapisHruDoSuboru(int pocetRiadkov, int pocetStlpcov, int *pole, int poradoveCislo);
 
-int *nacitajHruZoSuboru(int pocetRiadkov, int pocetStlpcov);
+int *nacitajHruZoSuboru();
 
 static void *ovladanie(void *data);
 
 static void *simuluj(void *data);
 
 
-int main(int argc, char *argv[]) {
+int spojenieZoServerom(int pocetArgumentov,char* nazovProgramu, char* menoKlienta, char* menoServera, char* port, int* svet, int pocetRiadkov, int pocetStlpcov);
+void posliSubor(FILE *subor,int sockfd);
+
+int mainKlient(int argc, char *argv[]) {
     srand(time(NULL));
     int poradoveCisloHry = 1;
     int pocetRiadkov;
@@ -66,12 +69,12 @@ int main(int argc, char *argv[]) {
     int volbaSubor;
     int koniec;
     int *svet = NULL;
-    //zistiStlacenuKlavesu();
-    /*int *pole = nacitajHruZoSuboru(3,3);
-    zobrazSvet(3,3,pole);*/
-    /*printf("Chcete svet zo suboru?\n");
-    printf("Ak ano stlacte 1 ak nie stlacte 0\n");
-    scanf("%d", &volbaSubor);*/
+
+    //int *pole = nacitajHruZoSuboru(3,3);
+    //zobrazSvet(3,3,pole);
+    //printf("Chcete svet zo suboru?\n");
+    //printf("Ak ano stlacte 1 ak nie stlacte 0\n");
+    //scanf("%d", &volbaSubor);
 
     printf("Zadaj pocet riadkov svetu: ");
     scanf("%d", &pocetRiadkov);
@@ -90,13 +93,14 @@ int main(int argc, char *argv[]) {
     if (volbaGenerovania == 0) {
         printf("volba generovania je:%d \n", volbaGenerovania);
         svet = vytvorSvetManualne(pocetRiadkov, pocetStlpcov);
-        zobrazSvet(pocetRiadkov, pocetStlpcov, svet);
+        //zobrazSvet(pocetRiadkov, pocetStlpcov, svet);
     } else {
         printf("volba generovania je:%d \n", volbaGenerovania);
         svet = vytvorSvetNahodne(pocetRiadkov, pocetStlpcov);
         zobrazSvet(pocetRiadkov, pocetStlpcov, svet);
+        zapisHruDoSuboru(pocetRiadkov,pocetStlpcov,svet,poradoveCisloHry);
     }
-    int volbaKroky;
+    /*int volbaKroky;
     printf("Zvolte si ci chcete zacat od nejakeho kroku");
     printf("Ak zadate 0- bude sa simulovat od zaciatku\n");
     printf("Ak zadate 1- bude sa simulovat od kroku\n");
@@ -110,9 +114,9 @@ int main(int argc, char *argv[]) {
         krok = 0;
     }
 
-    /*printf("Chcete zacat simulaciu od nejakeho kroku?\n");
+    printf("Chcete zacat simulaciu od nejakeho kroku?\n");
     printf("Ak ano stlacte 1 ak nie stlacte 0\n");
-    scanf("%d",&koniec);*/
+    scanf("%d",&koniec);
     //zapisHruDoSuboru(pocetRiadkov,pocetStlpcov,);
     pthread_mutex_t mutex;
     pthread_mutex_init(&mutex, NULL);
@@ -129,7 +133,8 @@ int main(int argc, char *argv[]) {
 
     pthread_mutex_destroy(&mutex);
 
-    poradoveCisloHry++;
+    poradoveCisloHry++;*/
+    spojenieZoServerom(argc,argv[0],argv[1],argv[2],argv[3],svet,pocetRiadkov,pocetStlpcov);
     return 0;
 }
 
@@ -267,12 +272,11 @@ void zapisHruDoSuboru(int pocetRiadkov, int pocetStlpcov, int *pole, int poradov
     fclose(subor);
 }
 
-int *nacitajHruZoSuboru(int pocetRiadkov, int pocetStlpcov) {
-    int *pole = calloc(pocetRiadkov * pocetStlpcov, sizeof(int));
-
+int *nacitajHruZoSuboru() {
     FILE *vstup = fopen("C:\\Users\\peter\\CLionProjects\\hraZivot\\vstup.txt", "r");
-
+    int pocetRiadkov, pocetStlpcov;
     char *riadok, *cislo;
+    int *pole;
     if (vstup == NULL) {
         printf("Subor sa nenasiel\n");
         exit(1);
@@ -280,21 +284,31 @@ int *nacitajHruZoSuboru(int pocetRiadkov, int pocetStlpcov) {
     printf("ide to dalej po ife\n");
     int y = 0;
     int x;
+    int pocitadloNaPrvyRiadok = 0;
     while (feof((vstup))) {
+        pocitadloNaPrvyRiadok++;
         x = 0;
         fscanf(vstup, "%c", riadok);
         cislo = strtok(riadok, " ");
         while (cislo != NULL) {
-            *(pole + y * pocetStlpcov + x) = strtol(riadok, &cislo, 10);
-            x++;
-            cislo = strtok(NULL, " ");
+            if (pocitadloNaPrvyRiadok == 1) {
+                pocetRiadkov = atoi(cislo);
+                printf("Riadky: %d\n", pocetRiadkov);
+            } else if (pocitadloNaPrvyRiadok == 2) {
+                pocetStlpcov = atoi(cislo);
+                printf("Riadky: %d\n", pocetStlpcov);
+                pole = calloc(pocetRiadkov * pocetStlpcov, sizeof(int));
+            } else {
+                *(pole + y * pocetStlpcov + x) = atoi(cislo);
+                x++;
+                cislo = strtok(NULL, " ");
+            }
         }
         printf("\n");
         y++;
     }
 
     return pole;
-
 
 }
 
@@ -433,4 +447,130 @@ int *urobKrokDozadu(int pocetRiadkov, int pocetStlpcov, int *pole) {
         }
     }
     return pomPole;
+}
+
+int klient(){
+    /*int sockfd;
+    struct sockaddr_in serv_addr;
+    FILE* subor;
+    char *nazovSuboru = "vystup.txt";
+    struct hostent* server;
+
+
+    char buffer[256];
+
+    if (pocetArgumentov < 3)
+    {
+        fprintf(stderr,"Malo argumetov v program s nazvom: %s .\n", nazovProgramu);
+        return 1;
+    }
+
+    server = gethostbyname(menoKlienta);
+    if (server == NULL)
+    {
+        fprintf(stderr, "Taktyto host neeexsituje.\n");
+        return 2;
+    }
+
+
+    bzero((char*)&serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    bcopy(
+            (char*)server->h_addr,
+            (char*)&serv_addr.sin_addr.s_addr,
+            server->h_length
+    );
+    serv_addr.sin_port = htons(atoi(menoServera));
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0)
+    {
+        perror("Chyba pri vytvarani socketu");
+        return 3;
+    }
+    printf("Socket vytvoreny.\n");
+
+
+    if(connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
+    {
+        perror("Nepodarilo sa pripojit na zadanu adresu");
+        return 4;
+    }
+    printf("Pripojeny k serveru.\n");
+
+    subor = fopen(nazovSuboru,"r");
+    if(subor== NULL){
+        perror("Chyba pri citani suboru\n");
+        exit(1);
+    }*/
+}
+
+
+void posliSubor(FILE* subor,int sockfd){
+    char data[1024] = {0};
+    while (fgets(data,1024,subor) != NULL){
+        if(send(sockfd, data, sizeof(data),0) == -1){
+            perror("Chyba pri posielani dat\n");
+            exit(1);
+        }
+        bzero(data,1024);
+    }
+}
+
+int spojenieZoServerom(int pocetArgumentov, char* nazovProgramu, char* menoKlienta, char* menoServera, char* port, int* svet, int pocetRiadkov, int pocetStlpcov){
+    int sockfd;
+    struct sockaddr_in serv_addr;
+    FILE* subor;
+    char *nazovSuboru = "vystup.txt";
+    struct hostent* server;
+    char buffer[256];
+
+    if (pocetArgumentov < 3)
+    {
+        fprintf(stderr,"Malo argumetov v program s nazvom: %s .\n", nazovProgramu);
+        exit(1);
+    }
+    server = gethostbyname(menoServera);
+    if (server == NULL)
+    {
+        fprintf(stderr, "Takyto host neeexsituje.\n");
+        exit(1);
+    }
+
+
+    bzero((char*)&serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    bcopy(
+            (char*)server->h_addr,
+            (char*)&serv_addr.sin_addr.s_addr,
+            server->h_length
+    );
+    serv_addr.sin_port = htons(atoi(port));
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0)
+    {
+        perror("Chyba pri vytvarani socketu");
+        exit(1);
+    }
+    printf("Socket vytvoreny.\n");
+
+
+    if(connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
+    {
+        perror("Nepodarilo sa pripojit na zadanu adresu");
+        exit(1);
+    }
+    printf("Pripojeny k serveru.\n");
+
+    subor = fopen(nazovSuboru,"r");
+    if(subor== NULL){
+        perror("Chyba pri citani suboru\n");
+        exit(1);
+    }
+    posliSubor(subor,sockfd);
+    printf("Data sa poslali uspense\n");
+    close(sockfd);
+    printf("Odpojeny zo serveru");
+    return 0;
 }

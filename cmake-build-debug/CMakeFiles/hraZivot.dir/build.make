@@ -89,22 +89,9 @@ CMakeFiles/hraZivot.dir/main.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/hraZivot.dir/main.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /tmp/tmp.R60RAYMiqi/main.c -o CMakeFiles/hraZivot.dir/main.c.s
 
-CMakeFiles/hraZivot.dir/server.c.o: CMakeFiles/hraZivot.dir/flags.make
-CMakeFiles/hraZivot.dir/server.c.o: ../server.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/tmp.R60RAYMiqi/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/hraZivot.dir/server.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/hraZivot.dir/server.c.o -c /tmp/tmp.R60RAYMiqi/server.c
-
-CMakeFiles/hraZivot.dir/server.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/hraZivot.dir/server.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /tmp/tmp.R60RAYMiqi/server.c > CMakeFiles/hraZivot.dir/server.c.i
-
-CMakeFiles/hraZivot.dir/server.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/hraZivot.dir/server.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /tmp/tmp.R60RAYMiqi/server.c -o CMakeFiles/hraZivot.dir/server.c.s
-
 CMakeFiles/hraZivot.dir/klient.c.o: CMakeFiles/hraZivot.dir/flags.make
 CMakeFiles/hraZivot.dir/klient.c.o: ../klient.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/tmp.R60RAYMiqi/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/hraZivot.dir/klient.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/tmp.R60RAYMiqi/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/hraZivot.dir/klient.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/hraZivot.dir/klient.c.o -c /tmp/tmp.R60RAYMiqi/klient.c
 
 CMakeFiles/hraZivot.dir/klient.c.i: cmake_force
@@ -115,18 +102,31 @@ CMakeFiles/hraZivot.dir/klient.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/hraZivot.dir/klient.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /tmp/tmp.R60RAYMiqi/klient.c -o CMakeFiles/hraZivot.dir/klient.c.s
 
+CMakeFiles/hraZivot.dir/server.c.o: CMakeFiles/hraZivot.dir/flags.make
+CMakeFiles/hraZivot.dir/server.c.o: ../server.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/tmp.R60RAYMiqi/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/hraZivot.dir/server.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/hraZivot.dir/server.c.o -c /tmp/tmp.R60RAYMiqi/server.c
+
+CMakeFiles/hraZivot.dir/server.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/hraZivot.dir/server.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /tmp/tmp.R60RAYMiqi/server.c > CMakeFiles/hraZivot.dir/server.c.i
+
+CMakeFiles/hraZivot.dir/server.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/hraZivot.dir/server.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /tmp/tmp.R60RAYMiqi/server.c -o CMakeFiles/hraZivot.dir/server.c.s
+
 # Object files for target hraZivot
 hraZivot_OBJECTS = \
 "CMakeFiles/hraZivot.dir/main.c.o" \
-"CMakeFiles/hraZivot.dir/server.c.o" \
-"CMakeFiles/hraZivot.dir/klient.c.o"
+"CMakeFiles/hraZivot.dir/klient.c.o" \
+"CMakeFiles/hraZivot.dir/server.c.o"
 
 # External object files for target hraZivot
 hraZivot_EXTERNAL_OBJECTS =
 
 hraZivot: CMakeFiles/hraZivot.dir/main.c.o
-hraZivot: CMakeFiles/hraZivot.dir/server.c.o
 hraZivot: CMakeFiles/hraZivot.dir/klient.c.o
+hraZivot: CMakeFiles/hraZivot.dir/server.c.o
 hraZivot: CMakeFiles/hraZivot.dir/build.make
 hraZivot: CMakeFiles/hraZivot.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/tmp/tmp.R60RAYMiqi/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking C executable hraZivot"

@@ -4,7 +4,9 @@
 CMakeFiles/hraZivot.dir/klient.c.o: ../klient.c
 CMakeFiles/hraZivot.dir/klient.c.o: ../klient.h
 
+CMakeFiles/hraZivot.dir/main.c.o: ../klient.h
 CMakeFiles/hraZivot.dir/main.c.o: ../main.c
+CMakeFiles/hraZivot.dir/main.c.o: ../server.h
 
 CMakeFiles/hraZivot.dir/server.c.o: ../server.c
 
