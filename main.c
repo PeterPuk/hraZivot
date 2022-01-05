@@ -23,11 +23,7 @@ int main(int argc, char* argv[]) {
     printf("Som v main\n");
 
 
-    //if (strcmp(argv[1],"server") == 0) {
-
-   // } else {
-        printf("%s je spusteny. \n",argv[1]);
-        mainKlient(argc,argv);
-    //}
+/*int main() {
+    printf("Hello, Wokjhsdfoorld!\n");
     return 0;
-}
+}*/
