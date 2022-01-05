@@ -100,6 +100,8 @@ int mainKlient(int argc, char *argv[]) {
         zobrazSvet(pocetRiadkov, pocetStlpcov, svet);
         zapisHruDoSuboru(pocetRiadkov,pocetStlpcov,svet,poradoveCisloHry);
     }
+    spojenieZoServerom(argc,argv[0], argv[1], argv[2],argv[3],svet,pocetRiadkov,pocetStlpcov);
+
     /*int volbaKroky;
     printf("Zvolte si ci chcete zacat od nejakeho kroku");
     printf("Ak zadate 0- bude sa simulovat od zaciatku\n");
@@ -133,7 +135,7 @@ int mainKlient(int argc, char *argv[]) {
 
     pthread_mutex_destroy(&mutex);
 
-    poradoveCisloHry++;
+    poradoveCisloHry++;*/
     return 0;
 }
 
@@ -437,4 +439,73 @@ int *urobKrokDozadu(int pocetRiadkov, int pocetStlpcov, int *pole) {
         }
     }
     return pomPole;
+}
+
+int spojenieZoServerom(int pocetArgumentov, char* nazovProgramu, char* menoKlienta, char* menoServera, char* port, int* svet, int pocetRiadkov, int pocetStlpcov){
+    int sockfd;
+    struct sockaddr_in serv_addr;
+    FILE* subor;
+    char *nazovSuboru = "vystup.txt";
+    struct hostent* server;
+    char buffer[256];
+
+    if (pocetArgumentov < 3)
+    {
+        fprintf(stderr,"Malo argumetov v program s nazvom: %s .\n", nazovProgramu);
+        exit(1);
+    }
+    server = gethostbyname(menoServera);
+    if (server == NULL)
+    {
+        fprintf(stderr, "Takyto host neeexsituje.\n");
+        exit(1);
+    }
+
+
+    bzero((char*)&serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    bcopy(
+            (char*)server->h_addr,
+            (char*)&serv_addr.sin_addr.s_addr,
+            server->h_length
+    );
+    serv_addr.sin_port = htons(atoi(port));
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0)
+    {
+        perror("Chyba pri vytvarani socketu");
+        exit(1);
+    }
+    printf("Socket vytvoreny.\n");
+
+
+    if(connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
+    {
+        perror("Nepodarilo sa pripojit na zadanu adresu");
+        exit(1);
+    }
+    printf("Pripojeny k serveru.\n");
+
+    subor = fopen(nazovSuboru,"r");
+    if(subor== NULL){
+        perror("Chyba pri citani suboru\n");
+        exit(1);
+    }
+    posliSubor(subor,sockfd);
+    printf("Data sa poslali uspense\n");
+    close(sockfd);
+    printf("Odpojeny zo serveru");
+    return 0;
+}
+
+void posliSubor(FILE* subor,int sockfd){
+    char data[1024] = {0};
+    while (fgets(data,1024,subor) != NULL){
+        if(send(sockfd, data, sizeof(data),0) == -1){
+            perror("Chyba pri posielani dat\n");
+            exit(1);
+        }
+        bzero(data,1024);
+    }
 }

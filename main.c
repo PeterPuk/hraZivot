@@ -21,9 +21,6 @@
 #include <fcntl.h>
 int main(int argc, char* argv[]) {
     printf("Som v main\n");
+    mainKlient(argc,argv);
 
-
-/*int main() {
-    printf("Hello, Wokjhsdfoorld!\n");
-    return 0;
-}*/
+}
