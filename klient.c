@@ -56,9 +56,18 @@ static void *ovladanie(void *data);
 
 static void *simuluj(void *data);
 
+int posliVolbuNacitania(int cinnost, int sockfd);
 
-int spojenieZoServerom(int pocetArgumentov,char* nazovProgramu, char* menoKlienta, char* menoServera, char* port, int* svet, int pocetRiadkov, int pocetStlpcov);
-void posliSubor(FILE *subor,int sockfd);
+
+int *spojenieZoServerom(int pocetArgumentov, char *nazovProgramu, char *menoKlienta, char *menoServera, char *port,
+                        int *svet, int pocetRiadkov, int pocetStlpcov, int volbaNacitanie);
+
+void posliSubor(FILE *subor, int sockfd);
+
+int *precitajSubor(int sockfd);
+
+int stlpec;
+int riadok;
 
 int mainKlient(int argc, char *argv[]) {
     srand(time(NULL));
@@ -66,76 +75,82 @@ int mainKlient(int argc, char *argv[]) {
     int pocetRiadkov;
     int pocetStlpcov;
     int volbaGenerovania;
-    int volbaSubor;
+    int volbaNacitanie;
     int koniec;
     int *svet = NULL;
 
-    //int *pole = nacitajHruZoSuboru(3,3);
-    //zobrazSvet(3,3,pole);
-    //printf("Chcete svet zo suboru?\n");
-    //printf("Ak ano stlacte 1 ak nie stlacte 0\n");
-    //scanf("%d", &volbaSubor);
-
-    printf("Zadaj pocet riadkov svetu: ");
-    scanf("%d", &pocetRiadkov);
-    printf("Zadaj pocet stlpcov svetu: ");
-    scanf("%d", &pocetStlpcov);
-
-    printf("-------------------------------\n");
-    printf("Zvolte si ci chcete generovat nahodne alebo manualne\n");
-    printf("Ak zadate 1- bude sa generovat nahodne\n");
-    printf("Ak zadate 0- budete si moct sami zvolit bunky\n");
-    printf("-------------------------------\n");
-
-    scanf("%d", &volbaGenerovania);
-    pocetRiadkov += 2;
-    pocetStlpcov += 2;
-    if (volbaGenerovania == 0) {
-        printf("volba generovania je:%d \n", volbaGenerovania);
-        svet = vytvorSvetManualne(pocetRiadkov, pocetStlpcov);
-        //zobrazSvet(pocetRiadkov, pocetStlpcov, svet);
-    } else {
-        printf("volba generovania je:%d \n", volbaGenerovania);
-        svet = vytvorSvetNahodne(pocetRiadkov, pocetStlpcov);
-        zobrazSvet(pocetRiadkov, pocetStlpcov, svet);
-        zapisHruDoSuboru(pocetRiadkov,pocetStlpcov,svet,poradoveCisloHry);
-    }
-    spojenieZoServerom(argc,argv[0], argv[1], argv[2],argv[3],svet,pocetRiadkov,pocetStlpcov);
-
-    /*int volbaKroky;
-    printf("Zvolte si ci chcete zacat od nejakeho kroku");
-    printf("Ak zadate 0- bude sa simulovat od zaciatku\n");
-    printf("Ak zadate 1- bude sa simulovat od kroku\n");
-    scanf("%d", &volbaKroky);
-    int krok = 0;
-    if (volbaKroky == 1) {
-        printf("Zadajte krok od ktoreho chcete zacat simulovat\n");
-        scanf("%d", &krok);
-
-    } else {
-        krok = 0;
-    }
-
-    printf("Chcete zacat simulaciu od nejakeho kroku?\n");
+    printf("Chcete svet zo suboru?\n");
     printf("Ak ano stlacte 1 ak nie stlacte 0\n");
-    scanf("%d",&koniec);
-    //zapisHruDoSuboru(pocetRiadkov,pocetStlpcov,);
-    pthread_mutex_t mutex;
-    pthread_mutex_init(&mutex, NULL);
-    DATA dataV = {&mutex, 0, pocetRiadkov, pocetStlpcov, poradoveCisloHry, 0, krok, svet};
+    scanf("%d", &volbaNacitanie);
+    if (volbaNacitanie == 1) {
+        svet = spojenieZoServerom(argc, argv[0], argv[1], argv[2], argv[3], svet, 5, 5, volbaNacitanie);
+        pocetStlpcov = stlpec;
+        pocetRiadkov = riadok;
+    } else {
+        printf("Zadaj pocet riadkov svetu: ");
+        scanf("%d", &pocetRiadkov);
+        printf("Zadaj pocet stlpcov svetu: ");
+        scanf("%d", &pocetStlpcov);
 
-    pthread_t hra;
-    pthread_create(&hra, NULL, simuluj, &dataV);
+        printf("-------------------------------\n");
+        printf("Zvolte si ci chcete generovat nahodne alebo manualne\n");
+        printf("Ak zadate 1- bude sa generovat nahodne\n");
+        printf("Ak zadate 0- budete si moct sami zvolit bunky\n");
+        printf("-------------------------------\n");
 
-    pthread_t pouzivatel;
-    pthread_create(&pouzivatel, NULL, ovladanie, &dataV);
+        scanf("%d", &volbaGenerovania);
+        pocetRiadkov += 2;
+        pocetStlpcov += 2;
+        if (volbaGenerovania == 0) {
+            printf("volba generovania je:%d \n", volbaGenerovania);
+            svet = vytvorSvetManualne(pocetRiadkov, pocetStlpcov);
+            zobrazSvet(pocetRiadkov, pocetStlpcov, svet);
+            zapisHruDoSuboru(pocetRiadkov, pocetStlpcov, svet, poradoveCisloHry);
+            spojenieZoServerom(argc, argv[0], argv[1], argv[2], argv[3], svet, pocetRiadkov, pocetStlpcov,
+                               volbaNacitanie);
 
-    pthread_join(hra, NULL);
-    pthread_join(pouzivatel, NULL);
+        } else {
+            printf("volba generovania je:%d \n", volbaGenerovania);
+            svet = vytvorSvetNahodne(pocetRiadkov, pocetStlpcov);
+            zobrazSvet(pocetRiadkov, pocetStlpcov, svet);
+            //znizujeme pocetRIadkov na spravny zapis svetu do suboru
+            zapisHruDoSuboru(pocetRiadkov, pocetStlpcov, svet, poradoveCisloHry);
+            spojenieZoServerom(argc, argv[0], argv[1], argv[2], argv[3], svet, pocetRiadkov, pocetStlpcov,
+                               volbaNacitanie);
+        }
+    }
+        int volbaKroky;
+        printf("Zvolte si ci chcete zacat od nejakeho kroku");
+        printf("Ak zadate 0- bude sa simulovat od zaciatku\n");
+        printf("Ak zadate 1- bude sa simulovat od kroku\n");
+        scanf("%d", &volbaKroky);
+        int krok = 0;
+        if (volbaKroky == 1) {
+            printf("Zadajte krok od ktoreho chcete zacat simulovat\n");
+            scanf("%d", &krok);
 
-    pthread_mutex_destroy(&mutex);
+        } else {
+            krok = 0;
+        }
 
-    poradoveCisloHry++;*/
+        //zapisHruDoSuboru(pocetRiadkov,pocetStlpcov,);
+        pthread_mutex_t mutex;
+        pthread_mutex_init(&mutex, NULL);
+        DATA dataV = {&mutex, 0, pocetRiadkov, pocetStlpcov, poradoveCisloHry, 0, krok, svet};
+
+        pthread_t hra;
+        pthread_create(&hra, NULL, simuluj, &dataV);
+
+        pthread_t pouzivatel;
+        pthread_create(&pouzivatel, NULL, ovladanie, &dataV);
+
+        pthread_join(hra, NULL);
+        pthread_join(pouzivatel, NULL);
+
+        pthread_mutex_destroy(&mutex);
+
+        poradoveCisloHry++;
+
     return 0;
 }
 
@@ -181,32 +196,32 @@ static void *ovladanie(void *data) {
         changemode(1);
         //int pom = 0;
         //while (pom < 200) {
-            if (kbhit() == 1) {
-                vyprazdniStdin();
-                printf("Simulacia bola v tomto kroku prerusena\n");
+        if (kbhit() == 1) {
+            vyprazdniStdin();
+            printf("Simulacia bola v tomto kroku prerusena\n");
 
-                pthread_mutex_lock(dataV->mutex);
-                /*pom = 300;
-                int volbaPokracovania = 0;
-                printf("Ak chcete krok dozadu zadajte 1 a ak chcete vypnut simulaciu zadajte 0 alebo stlacte 2 a pokracujte\n");
-                scanf("%d", &volbaPokracovania);
+            pthread_mutex_lock(dataV->mutex);
+            /*pom = 300;
+            int volbaPokracovania = 0;
+            printf("Ak chcete krok dozadu zadajte 1 a ak chcete vypnut simulaciu zadajte 0 alebo stlacte 2 a pokracujte\n");
+            scanf("%d", &volbaPokracovania);
 
-                if (volbaPokracovania == 1) {
-                    printf("blabla\n");
-                    koniec = 1;
-                } else if (volbaPokracovania == 0) {
-                    dataV->koniec = 1;
-                    koniec = 1;
-                } else {
-                    printf("Pokracuje sa dalej\n");
-                }*/
-
+            if (volbaPokracovania == 1) {
+                printf("blabla\n");
+                koniec = 1;
+            } else if (volbaPokracovania == 0) {
                 dataV->koniec = 1;
                 koniec = 1;
             } else {
-                pom++;
-            }
-       // }
+                printf("Pokracuje sa dalej\n");
+            }*/
+
+            dataV->koniec = 1;
+            koniec = 1;
+        } else {
+            pom++;
+        }
+        // }
         changemode(0);
         pthread_mutex_unlock(dataV->mutex);
     }
@@ -218,7 +233,6 @@ static void *simuluj(void *data) {
     printf("Vlakno zacina simulovat\n");
     int *svet = dataV->svet;
     zobrazSvet(dataV->pocetRiadkov, dataV->pocetStlpcov, svet);
-    zapisHruDoSuboru(dataV->pocetRiadkov, dataV->pocetStlpcov, svet, dataV->poradoveCislo);
     printf("------------------------\n");
     int koniec = 0;
     int pocitadloKrokov = 0;
@@ -246,8 +260,8 @@ static void *simuluj(void *data) {
 
 
 void zobrazSvet(int pocetRiadkov, int pocetStlpcov, int *pole) {
-    for (int y = 0; y < pocetRiadkov; ++y) {
-        for (int x = 0; x < pocetStlpcov; ++x) {
+    for (int y = 1; y < pocetRiadkov - 1; ++y) {
+        for (int x = 1; x < pocetStlpcov - 1; ++x) {
             printf("%d", *(pole + y * pocetStlpcov + x));
         }
         printf("\n");
@@ -261,12 +275,20 @@ void zapisHruDoSuboru(int pocetRiadkov, int pocetStlpcov, int *pole, int poradov
         printf("Subor sa nenasiel\n");
         exit(1);
     }
+
     printf("Zapisuje sa do suboru\n");
-    for (int y = 0; y < pocetRiadkov; ++y) {
-        for (int x = 0; x < pocetStlpcov; ++x) {
+    fprintf(subor, "%d", poradoveCislo);
+    fprintf(subor, "\n");
+    fprintf(subor, "%d", pocetRiadkov);
+    fprintf(subor, "\n");
+    fprintf(subor, "%d", pocetStlpcov);
+    fprintf(subor, "\n");
+    char medzera = ' ';
+    for (int y = 1; y < pocetRiadkov - 1; ++y) {
+        for (int x = 1; x < pocetStlpcov - 1; ++x) {
             int cislo = *(pole + y * pocetStlpcov + x);
             fprintf(subor, "%d", cislo);
-
+            fprintf(subor, "%c", medzera);
         }
         fprintf(subor, "\n");
     }
@@ -441,71 +463,147 @@ int *urobKrokDozadu(int pocetRiadkov, int pocetStlpcov, int *pole) {
     return pomPole;
 }
 
-int spojenieZoServerom(int pocetArgumentov, char* nazovProgramu, char* menoKlienta, char* menoServera, char* port, int* svet, int pocetRiadkov, int pocetStlpcov){
+int *spojenieZoServerom(int pocetArgumentov, char *nazovProgramu, char *menoKlienta, char *menoServera, char *port,
+                        int *svet, int pocetRiadkov, int pocetStlpcov, int volbaNacitanie) {
     int sockfd;
+    int *svetZoSuboru;
     struct sockaddr_in serv_addr;
-    FILE* subor;
+    FILE *subor;
     char *nazovSuboru = "vystup.txt";
-    struct hostent* server;
+    struct hostent *server;
     char buffer[256];
 
-    if (pocetArgumentov < 3)
-    {
-        fprintf(stderr,"Malo argumetov v program s nazvom: %s .\n", nazovProgramu);
+    if (pocetArgumentov < 3) {
+        fprintf(stderr, "Malo argumetov v program s nazvom: %s .\n", nazovProgramu);
         exit(1);
     }
     server = gethostbyname(menoServera);
-    if (server == NULL)
-    {
+    if (server == NULL) {
         fprintf(stderr, "Takyto host neeexsituje.\n");
         exit(1);
     }
 
 
-    bzero((char*)&serv_addr, sizeof(serv_addr));
+    bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     bcopy(
-            (char*)server->h_addr,
-            (char*)&serv_addr.sin_addr.s_addr,
+            (char *) server->h_addr,
+            (char *) &serv_addr.sin_addr.s_addr,
             server->h_length
     );
     serv_addr.sin_port = htons(atoi(port));
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0)
-    {
+    if (sockfd < 0) {
         perror("Chyba pri vytvarani socketu");
         exit(1);
     }
     printf("Socket vytvoreny.\n");
 
 
-    if(connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
-    {
+    if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("Nepodarilo sa pripojit na zadanu adresu");
         exit(1);
     }
     printf("Pripojeny k serveru.\n");
 
-    subor = fopen(nazovSuboru,"r");
-    if(subor== NULL){
-        perror("Chyba pri citani suboru\n");
-        exit(1);
+    if (volbaNacitanie == 1) {
+        posliVolbuNacitania(1, sockfd);
+        svetZoSuboru = precitajSubor(sockfd);
+        return svetZoSuboru;
+    } else {
+        posliVolbuNacitania(0, sockfd);
+        subor = fopen(nazovSuboru, "r");
+        if (subor == NULL) {
+            perror("Chyba pri citani suboru\n");
+            exit(1);
+        }
+        posliSubor(subor, sockfd);
+        printf("Data sa poslali uspense\n");
     }
-    posliSubor(subor,sockfd);
-    printf("Data sa poslali uspense\n");
     close(sockfd);
     printf("Odpojeny zo serveru");
-    return 0;
+    return NULL;
 }
 
-void posliSubor(FILE* subor,int sockfd){
+void posliSubor(FILE *subor, int sockfd) {
     char data[1024] = {0};
-    while (fgets(data,1024,subor) != NULL){
-        if(send(sockfd, data, sizeof(data),0) == -1){
+    while (fgets(data, 1024, subor) != NULL) {
+        if (send(sockfd, data, sizeof(data), 0) == -1) {
             perror("Chyba pri posielani dat\n");
             exit(1);
         }
-        bzero(data,1024);
+        bzero(data, 1024);
     }
+}
+
+int *precitajSubor(int sockfd) {
+    int *pole;
+    int n;
+    char *cislo;
+    FILE *subor;
+    char *nazovSuboru = "vystup.txt";
+    char buffer[1024];
+    subor = fopen(nazovSuboru, "w");
+    if (subor == NULL) {
+        perror("Chyba pri vytvarani suboru\n");
+        exit(1);
+    }
+    int pocitadlo = 0;
+    int pocetRiadkov = 0;
+    int pocetStlpcov = 0;
+    int pocitadloNaStlpce = 0;
+    int nacitaneCislo;
+    char *medzera = " ";
+    int x = 0;
+    int y = 1;
+    while (1) {
+        n = recv(sockfd, buffer, 1024, 0);
+        if (n <= 0) {
+            break;
+        }
+        fprintf(subor, "%s", buffer);
+        if (pocitadlo == 0) {
+            cislo = atoi(buffer);
+            printf("Poradove cislo hry je:%d\n", cislo);
+        } else if (pocitadlo == 1) {
+            pocetRiadkov = atoi(buffer);
+            printf("Pocet riadkov je: %d\n", pocetRiadkov);
+            riadok = pocetRiadkov;
+        } else if (pocitadlo == 2) {
+            pocetStlpcov = atoi(buffer);
+            printf("Pocet stlpcov je: %d\n", pocetStlpcov);
+            stlpec = pocetStlpcov;
+            pole = calloc(pocetRiadkov * pocetStlpcov, sizeof(int));
+        } else {
+            cislo = strtok(buffer, " ");
+            while (cislo != NULL) {
+                x++;
+                nacitaneCislo = atoi(cislo);
+                *(pole + y * pocetStlpcov + x) = nacitaneCislo;
+                cislo = strtok(NULL, " ");
+                if (x == (pocetStlpcov - 2)) {
+                    x = 0;
+                    y++;
+                    break;
+                }
+            }
+            printf("\n");
+            pocitadloNaStlpce = 0;
+        }
+        bzero(buffer, 1024);
+        pocitadlo++;
+    }
+    zobrazSvet(pocetRiadkov, pocetStlpcov, pole);
+    return pole;
+}
+
+int posliVolbuNacitania(int volbaNacitania, int sockfd) {
+    printf("Posielam poziadavku na cinnost %d serveru\n", volbaNacitania);
+    int m = write(sockfd, &volbaNacitania, sizeof(volbaNacitania));
+    if (m < 0) {
+        perror("Error reading from socket");
+        return 6;
+    }
+    return 0;
 }
