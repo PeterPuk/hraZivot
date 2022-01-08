@@ -3,5 +3,5 @@ project(hraZivot C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(hraZivot main.c klient.h server.h klient.c server.c)
+add_executable(hraZivot main.c klient.h klient.c)
 target_link_libraries(hraZivot pthread)
