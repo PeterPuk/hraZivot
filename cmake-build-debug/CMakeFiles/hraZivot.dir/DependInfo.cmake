@@ -4,9 +4,9 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
-  "/tmp/tmp.R60RAYMiqi/klient.c" "/tmp/tmp.R60RAYMiqi/cmake-build-debug/CMakeFiles/hraZivot.dir/klient.c.o"
-  "/tmp/tmp.R60RAYMiqi/main.c" "/tmp/tmp.R60RAYMiqi/cmake-build-debug/CMakeFiles/hraZivot.dir/main.c.o"
-  "/tmp/tmp.R60RAYMiqi/server.c" "/tmp/tmp.R60RAYMiqi/cmake-build-debug/CMakeFiles/hraZivot.dir/server.c.o"
+  "/tmp/tmp.T0wmSG9sRt/klient.c" "/tmp/tmp.T0wmSG9sRt/cmake-build-debug/CMakeFiles/hraZivot.dir/klient.c.o"
+  "/tmp/tmp.T0wmSG9sRt/main.c" "/tmp/tmp.T0wmSG9sRt/cmake-build-debug/CMakeFiles/hraZivot.dir/main.c.o"
+  "/tmp/tmp.T0wmSG9sRt/server.c" "/tmp/tmp.T0wmSG9sRt/cmake-build-debug/CMakeFiles/hraZivot.dir/server.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 
