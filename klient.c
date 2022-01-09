@@ -177,6 +177,7 @@ static void *ovladanie(void *data) {
 
 static void *simuluj(void *data) {
     DATA *dataV = data;
+    int *novaSimulacia;
     printf("Vlakno zacina simulovat\n");
     int *svet = dataV->svet;
     zobrazSvet(dataV->pocetRiadkov, dataV->pocetStlpcov, svet);
@@ -185,11 +186,12 @@ static void *simuluj(void *data) {
     int pocitadloKrokov = 0;
     while (koniec == 0) {
         pthread_mutex_lock(dataV->mutex);
-        int *novaSimulacia = urobKrok(dataV->pocetRiadkov, dataV->pocetStlpcov, svet);
+        novaSimulacia = urobKrok(dataV->pocetRiadkov, dataV->pocetStlpcov, svet);
         svet = novaSimulacia;
         if (dataV->krok <= pocitadloKrokov && dataV->koniec == 0) {
             zobrazSvet(dataV->pocetRiadkov, dataV->pocetStlpcov, svet);
             printf("Toto bol %d. krok.\n", pocitadloKrokov);
+            printf("Ak chcete vypnut simulaciu stlacte lubovolnu klavesu a potvrdte enterom.\n");
             printf("------------------------\n");
             usleep(2000000);
         }
@@ -199,6 +201,7 @@ static void *simuluj(void *data) {
         usleep(200000);
         pocitadloKrokov++;
     }
+
     free(dataV->svet);
     return NULL;
 }
@@ -317,28 +320,24 @@ int spocitajSusedov(int pocetStlpcov, int x, int y, int *pole) {
 }
 
 int *urobKrok(int pocetRiadkov, int pocetStlpcov, int *pole) {
-    int *pomPole = calloc(pocetRiadkov * pocetStlpcov, sizeof(int));
-    if (pomPole == NULL) {
-        return NULL;
-    }
-
     for (int y = 1; y < pocetRiadkov - 1; ++y) {
         for (int x = 1; x < pocetStlpcov - 1; ++x) {
             int zivychSusedov = spocitajSusedov(pocetStlpcov, x, y, pole);
             int bunka = *(pole + y * pocetStlpcov + x);
 
             if ((zivychSusedov == 1 || zivychSusedov == 0) && bunka == 1) {
-                *(pomPole + y * pocetStlpcov + x) = 0;
+                *(pole + y * pocetStlpcov + x) = 0;
             } else if (zivychSusedov >= 4 && bunka == 1) {
-                *(pomPole + y * pocetStlpcov + x) = 0;
-            } else if ((zivychSusedov == 2 || zivychSusedov == 3) && bunka == 1) {
-                *(pomPole + y * pocetStlpcov + x) = 1;
+                *(pole + y * pocetStlpcov + x)= 0;
+            } else if ((zivychSusedov == 2  || zivychSusedov == 3) && bunka == 1) {
+                *(pole + y * pocetStlpcov + x)= 1;
             } else if (zivychSusedov == 3 && bunka == 0) {
-                *(pomPole + y * pocetStlpcov + x) = 1;
+                *(pole + y * pocetStlpcov + x)= 1;
             }
         }
     }
-    return pomPole;
+    return pole;
+
 }
 
 int *spojenieZoServerom(int pocetArgumentov, char *nazovProgramu, char *menoServera, char *port, int volbaNacitanie) {

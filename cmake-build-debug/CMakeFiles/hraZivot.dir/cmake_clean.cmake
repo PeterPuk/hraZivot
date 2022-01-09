@@ -1,7 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/hraZivot.dir/klient.c.o"
   "CMakeFiles/hraZivot.dir/main.c.o"
-  "CMakeFiles/hraZivot.dir/server.c.o"
   "hraZivot"
   "hraZivot.pdb"
 )
